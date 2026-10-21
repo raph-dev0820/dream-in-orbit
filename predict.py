@@ -1,33 +1,31 @@
 import argparse
 from pathlib import Path
 
+import joblib
 import pandas as pd
+
+from prepare_data import entrees
 
 
 def main():
-    # 1. lire les arguments donnés dans la commande
+    # 1. lire les arguments de la commande
     ap = argparse.ArgumentParser()
-    ap.add_argument("--test_dir", required=True)  # dossier de test
-    ap.add_argument("--out", required=True)       # fichier de sortie
+    ap.add_argument("--test_dir", required=True)
+    ap.add_argument("--out", required=True)
     a = ap.parse_args()
-
-    # 2. charger les 7 jours réels et la liste des heures à prédire
     dossier = Path(a.test_dir)
-    init = pd.read_csv(dossier / "power_init.csv")
-    heures = pd.read_csv(dossier / "heures_a_predire.csv")
 
-    # 3. les circuits = toutes les colonnes sauf l'heure
-    circuits = [c for c in init.columns if c != "ut_ms"]
+    # 2. charger le modèle entraîné
+    modele, colonnes, circuits = joblib.load(Path(__file__).parent / "baseline.joblib")
 
-    # 4. la moyenne de chaque circuit sur les 7 jours (0 si aucune mesure)
-    moyennes = init[circuits].mean().fillna(0)
+    # 3. les heures à prédire, et les entrées de ces heures
+    heures = pd.read_csv(dossier / "heures_a_predire.csv")["ut_ms"]
+    grille = pd.Index(heures, name="ut_ms")
+    X = entrees(dossier, grille).reindex(columns=colonnes, fill_value=0)
 
-    # 5. un tableau : une ligne par heure, la même valeur pour chaque circuit
-    pred = pd.DataFrame({"ut_ms": heures["ut_ms"]})
-    for c in circuits:
-        pred[c] = moyennes[c]
-
-    # 6. écrire le fichier de réponses
+    # 4. prédire, puis écrire le fichier de réponses
+    pred = pd.DataFrame(modele.predict(X), columns=circuits)
+    pred.insert(0, "ut_ms", heures.values)
     pred.to_csv(a.out, index=False)
     print(f"{len(pred)} lignes écrites dans {a.out}")
 

@@ -48,7 +48,7 @@ def parts_par_heure(debuts, fins, etiquettes, grille):
                 couvert[(h, nom)] = couvert.get((h, nom), 0) + recouvrement
             h += H
     s = pd.Series(couvert)
-    t = s.unstack(fill_value=0) / H
+    t = (s.unstack(fill_value=0) / H).clip(upper=1)
     return t.reindex(grille, fill_value=0)
 
 
@@ -86,6 +86,16 @@ def evtf_horaire(dossier, grille):
                 debut = None
     return parts_par_heure(debuts, fins, noms, grille).add_prefix("evtf_")
 
+def entrees(dossier, grille):
+    """Assemble toutes les entrées : une ligne par heure, 55 colonnes."""
+    x = pd.concat([
+        dmop_horaire(dossier, grille),
+        ftl_horaire(dossier, grille),
+        evtf_horaire(dossier, grille),
+        saaf_horaire(dossier).reindex(grille),
+        ltdata_horaire(dossier, grille),
+    ], axis=1)
+    return x.ffill().fillna(0)  # s'il manque une valeur, on reprend la précédente
 
 if __name__ == "__main__":
     dossier = "annee1"
