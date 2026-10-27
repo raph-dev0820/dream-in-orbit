@@ -8,9 +8,9 @@ def heure(ut_ms):
     return (ut_ms // H) * H
 
 
-def power_horaire(dossier):
+def power_horaire(dossier, fichier="power.csv"):
     """Consommation : moyenne par heure de chaque circuit."""
-    p = pd.read_csv(f"{dossier}/power.csv")
+    p = pd.read_csv(f"{dossier}/{fichier}")
     p["ut_ms"] = heure(p["ut_ms"])
     return p.groupby("ut_ms").mean()
 
