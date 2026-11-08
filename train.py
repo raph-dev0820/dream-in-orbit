@@ -18,6 +18,7 @@ ap.add_argument("--p_max", type=float, default=1.0)
 ap.add_argument("--graine_debut", type=int, default=1)
 ap.add_argument("--threads", type=int, default=0)
 ap.add_argument("--out_dir", default="poids")
+ap.add_argument("--sans", nargs="*", default=["dmop_"])  # colonnes retirées (par défaut : les commandes)
 a = ap.parse_args()
 
 if a.threads:
@@ -33,6 +34,7 @@ for d in a.annees:
     donnees.append((entrees(d, grille), p.reindex(grille)))
 
 colonnes = sorted(set().union(*[set(X.columns) for X, _ in donnees]))
+colonnes = [c for c in colonnes if not c.startswith(tuple(a.sans))]
 circuits = list(donnees[0][1].columns)
 donnees = [(X.reindex(columns=colonnes, fill_value=0), Y[circuits]) for X, Y in donnees]
 
