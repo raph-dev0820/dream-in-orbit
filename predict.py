@@ -63,6 +63,7 @@ def main():
     # 4. chaque modèle rêve, puis on fait la moyenne et on mesure leur désaccord
     toutes = np.stack([rever(m, xt, yt, n_init) for m in modeles])
     moyenne = toutes.mean(axis=0) + y_mean.to_numpy()
+    moyenne = np.maximum(moyenne, 0.0)  # une consommation ne peut pas être négative
     desaccord = toutes.std(axis=0)
 
     # 5. écrire le fichier de réponses
