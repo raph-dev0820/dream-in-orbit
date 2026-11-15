@@ -29,7 +29,7 @@ def dossier_poids(nom):
 def lancer(nom, sans):
     cmd = PY + ["train.py", "--annees", "annee1", "--n_modeles", str(N_MODELES),
                 "--graine_debut", str(GRAINE_DEBUT), "--out_dir", dossier_poids(nom)]
-        cmd += ["--sans"] + sans
+    cmd += ["--sans"] + sans
     return subprocess.Popen(cmd, env=env, stdout=subprocess.DEVNULL)
 
 
